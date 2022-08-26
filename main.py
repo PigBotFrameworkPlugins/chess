@@ -1,12 +1,10 @@
-import requests, sys, time
+import requests, sys, time, random
 sys.path.append('../..')
 from bot import bot
 
 class chess(bot):
     def jing_pair(self):
         uid = self.se.get('user_id')
-        self.send('该功能正在玩命编写，目前还在测试')
-        
         if self.args[-1] != self.args[0]:
             # 有密钥
             var1 = self.findObject('pswd', self.args[1], jing)
@@ -21,7 +19,6 @@ class chess(bot):
                 
             for i in jing:
                 if i.get('player1') == uid or i.get('player2') == uid:
-                    self.send('remove')
                     jing.remove(i)
             
             jing[num]['player2'] = uid
@@ -34,14 +31,17 @@ class chess(bot):
                 jing.remove(i)
         
         pswd = time.time()
+        zuobi = random.randint(100000, 999999)
         jing.append({
             'player1': self.se.get('user_id'),
             'player2': self.se.get('user_id'),
             'pswd': pswd,
             'turn': self.se.get('user_id'),
+            'zuobi': zuobi,
             'map': [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         })
         self.send('已创建对战，您的配对密钥为：{0}'.format(pswd))
+        self.SendOld(uid, '您的作弊密钥为：{0}'.format(zuobi))
     
     def jing_go(self):
         uid = self.se.get('user_id')
@@ -52,13 +52,17 @@ class chess(bot):
                 break
             l += 1
         
+        zuobiFlag = True if self.args[2] != self.args[-1] and int(self.args[-1]) == ob.get('zuobi') else False
+        if zuobiFlag:
+            self.send('呼呼呼，开始作弊啦！')
+        
         xx = int(self.args[1])
         yy = int(self.args[2])
         if xx > 2 or xx < 0 or yy > 2 or yy < 0:
             return self.send('棋盘上没有这个位置！')
-        if ob['map'][yy][xx]:
+        if ob['map'][yy][xx] and not zuobiFlag:
             return self.send('该位置下过子了！')
-        if uid != ob.get('turn'):
+        if uid != ob.get('turn') and not zuobiFlag:
             return self.send('请您坐和放宽，还没轮到你呢')
         
         flag = 1 if ob.get('player1') == uid else 2
@@ -73,7 +77,10 @@ class chess(bot):
         elif state == False:
             self.send('轮到[CQ:at,qq={0}]了\n请发送“下 X坐标 Y坐标”来下棋'.format(jing[l]['turn']))
         else:
-            self.send('[CQ:at,qq={0}]赢啦！'.format(oldturn))
+            if zuobiFlag:
+                self.send('[CQ:at,qq={0}]赢啦！'.format(self.se.get('user_id')))
+            else:
+                self.send('[CQ:at,qq={0}]赢啦！'.format(oldturn))
         
     def jing_check(self, ob, flag):
         # 两次DFS
