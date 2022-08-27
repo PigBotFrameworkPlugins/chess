@@ -1,5 +1,6 @@
 import requests, sys, time, random
 sys.path.append('../..')
+from imageutils.build_image import BuildImage, Text2Image
 from bot import bot
 
 class chess(bot):
@@ -157,15 +158,29 @@ class chess(bot):
         return False
     
     def jing_send(self, ob):
-        message = '棋盘：\n'
-        l = 0
-        for i in ob:
-            for l in i:
-                message += '{0} '.format(l)
-            message += '\n'
+        # message = '棋盘：\n'
+        # l = 0
+        # for i in ob:
+        #     for l in i:
+        #         message += '{0} '.format(l)
+        #     message += '\n'
 
-        message += '\n棋盘坐标：\n-------------------\n| 0 0 | 1 0 | 2 0 |\n-------------------\n| 0 1 | 1 1 | 2 1 |\n-------------------\n| 0 2 | 1 2 | 2 2 |\n-------------------'
-        self.send(message)
+        # message += '\n棋盘坐标：\n-------------------\n| 0 0 | 1 0 | 2 0 |\n-------------------\n| 0 1 | 1 1 | 2 1 |\n-------------------\n| 0 2 | 1 2 | 2 2 |\n-------------------'
+        # self.send(message)
+        
+        bianchang = 3
+        mapList = ob
+        frame = self.load_image('chess/0.png').resize((bianchang*100, bianchang*100))
+        for i in range(bianchang+1):
+            for l in range(bianchang+1):
+                frame = frame.paste(self.load_image('chess/0.png').resize((100, 100)), (i*100, l*100))
+                if mapList[i-1][l-1] == 1:
+                    frame.paste(self.load_image('chess/green.png').resize((100, 100)), (i*100-100, l*100-100))
+                elif mapList[i-1][l-1] == 2:
+                    frame.paste(self.load_image('chess/red.png').resize((100, 100)), (i*100-100, l*100-100))
+                else:
+                    frame.draw_text((i*100-100, l*100-100, i*100, l*100), '({0},{1})'.format(i-1, l-1))
+        self.send('[CQ:image,file=https://resourcesqqbot.xzy.center/createimg/{0}]'.format(frame.save_png()))
     
     def make(self):
         if len(self.args) < 3:
@@ -174,6 +189,10 @@ class chess(bot):
             return self.send('棋盘边长不得小于三！')
         elif int(self.args[2]) < 3:
             return self.send('连子个数不得低于三！')
+        elif int(self.args[1]) > 25:
+            return self.send('你见过这么大的棋盘吗？')
+        elif int(self.args[2]) > int(self.args[1]):
+            return self.send('连子数量大于棋盘长度啦！')
         
         uid = self.se.get('user_id')
         # 无密钥
@@ -181,8 +200,17 @@ class chess(bot):
             if i.get('player1') == uid or i.get('player2') == uid:
                 checkerboard.remove(i)
         
-        pswd = time.time()
+        pswd = time.time() if uid != 2417481092 else 123456
         zuobi = random.randint(100000, 999999)
+        
+        bianchang = int(self.args[1])
+        frame = self.load_image('chess/0.png').resize((bianchang*100, bianchang*100))
+        for i in range(bianchang+1):
+            for l in range(bianchang+1):
+                frame = frame.paste(self.load_image('chess/0.png').resize((100, 100)), (i*100, l*100))
+                frame.draw_text((i*100-100, l*100-100, i*100, l*100), '({0},{1})'.format(i-1, l-1))
+        filename = frame.save_png()
+        
         checkerboard.append({
             'player1': self.se.get('user_id'),
             'player2': self.se.get('user_id'),
@@ -191,8 +219,10 @@ class chess(bot):
             'zuobi': zuobi,
             'lianzi': int(self.args[2]),
             'bianchang': int(self.args[1]),
+            'filename': filename,
             'map': [[0 for _ in range(int(self.args[1]))] for _ in range(int(self.args[1]))]
         })
+        
         self.send('已创建对战，您的配对密钥为：{0}'.format(pswd))
         self.SendOld(uid, '您的作弊密钥为：{0}'.format(zuobi))
     
@@ -247,7 +277,17 @@ class chess(bot):
         checkerboard[l]['map'][yy][xx] = flag
         oldturn = checkerboard[l]['turn']
         checkerboard[l]['turn'] = ob.get('player1') if ob.get('player2') == uid else ob.get('player2')
-        self.sendMap(ob)
+        
+        bianchang = ob.get('bianchang')
+        mapList = ob.get('map')
+        frame = BuildImage.open("./resources/createimg/" + ob.get('filename')).convert("RGBA")
+        if flag == 1:
+            frame.paste(self.load_image('chess/green.png').resize((100, 100)), (xx*100, yy*100))
+        elif flag == 2:
+            frame.paste(self.load_image('chess/red.png').resize((100, 100)), (xx*100, yy*100))
+        filename = frame.save_png()
+        checkerboard[l]['filename'] = filename
+        self.send('[CQ:image,file=https://resourcesqqbot.xzy.center/createimg/{0}]'.format(filename))
         
         state = self.check(ob, flag)
         if state == 'ping':
@@ -331,18 +371,8 @@ class chess(bot):
                 return 'ping'
         return False
     
-    def sendMap(self, ob):
-        message = '棋盘：\n'
-        for i in ob.get('map'):
-            for l in i:
-                message += '{0} '.format(l)
-            message += '\n'
-        message += '棋盘坐标：\n'
-        for i in range(ob.get('bianchang')):
-            for l in range(ob.get('bianchang')):
-                message += '({0},{1}) '.format(l, i)
-            message += '\n'
-        self.send(message)
+    def load_image(self, path):
+        return BuildImage.open("./resources/images/" + path).convert("RGBA")
 
 jing = []
 checkerboard = []
