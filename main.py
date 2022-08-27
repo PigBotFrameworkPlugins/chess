@@ -23,7 +23,7 @@ class chess(bot):
             
             jing[num]['player2'] = uid
             self.send('匹配成功！\n开始对战')
-            return self.send('先手：{0}\n请发送“下 X坐标 Y坐标”来下棋'.format(ob.get('turn')))
+            return self.send('先手：[CQ:at,qq={0}]\n请发送“井字棋下 X坐标 Y坐标”来下棋'.format(ob.get('turn')))
         
         # 无密钥
         for i in jing:
@@ -79,7 +79,7 @@ class chess(bot):
         if state == 'ping':
             self.send('平局啦！')
         elif state == False:
-            self.send('轮到[CQ:at,qq={0}]了\n请发送“下 X坐标 Y坐标”来下棋'.format(jing[l]['turn']))
+            self.send('轮到[CQ:at,qq={0}]了\n请发送“井字棋下 X坐标 Y坐标”来下棋'.format(jing[l]['turn']))
         else:
             if zuobiFlag:
                 self.send('[CQ:at,qq={0}]赢啦！'.format(self.se.get('user_id')))
@@ -169,7 +169,7 @@ class chess(bot):
     
     def make(self):
         if len(self.args) < 3:
-            return self.send('参数不全，请重新组队！')
+            return self.send('参数不全，用法：连子棋组队 棋盘边长 连子个数')
         elif int(self.args[1]) < 3:
             return self.send('棋盘边长不得小于三！')
         elif int(self.args[2]) < 3:
@@ -215,7 +215,7 @@ class chess(bot):
             
         checkerboard[num]['player2'] = uid
         self.send('匹配成功！\n开始对战')
-        return self.send('先手：[CQ:at,qq={0}]\n请发送“下 X坐标 Y坐标”来下棋'.format(ob.get('turn')))
+        return self.send('先手：[CQ:at,qq={0}]\n请发送“连子棋下 X坐标 Y坐标”来下棋'.format(ob.get('turn')))
     
     def go(self):
         uid = self.se.get('user_id')
