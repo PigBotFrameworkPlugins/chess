@@ -348,7 +348,25 @@ class chess(bot):
                     cnt = 1
                     for l in range(lianzi-1):
                         if j+l < bianchang and i+l < bianchang:
-                            if checkerboard[i][j+l] != checkerboard[i][j]:
+                            if checkerboard[i+l][j+l] != checkerboard[i][j]:
+                                breakFlag = 1
+                                break
+                            else:
+                                cnt += 1
+                            if cnt >= lianzi:
+                                break
+                        else:
+                            breakFlag = 1
+                            break
+                    if breakFlag == 0 and cnt >= lianzi:
+                        return True
+                        
+                    #检查 斜线上 是否有连续五个同一颜色的棋子
+                    breakFlag = 0
+                    cnt = 1
+                    for l in range(lianzi-1):
+                        if j+l < bianchang and i+l < bianchang:
+                            if checkerboard[i+l][j-l] != checkerboard[i][j]:
                                 breakFlag = 1
                                 break
                             else:
