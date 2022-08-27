@@ -17,4 +17,34 @@
     "mode": "井字棋",
     "isHide": 0,
     "type": "command"
+},
+{
+    "content": "连子棋下 ",
+    "usage": "见提示",
+    "promise": "anyone",
+    "eval": "chess.go()",
+    "description": "在指定位置下棋",
+    "mode": "连子棋",
+    "isHide": 0,
+    "type": "command"
+},
+{
+    "content": "连子棋组队 ",
+    "usage": "连子棋组队 <棋盘边长> <连子个数>",
+    "promise": "anyone",
+    "eval": "chess.make()",
+    "description": "连子棋组队",
+    "mode": "连子棋",
+    "isHide": 0,
+    "type": "command"
+},
+{
+    "content": "加入连子棋 ",
+    "usage": "加入连子棋 <密钥>",
+    "promise": "anyone",
+    "eval": "chess.join()",
+    "description": "加入连子棋房间",
+    "mode": "连子棋",
+    "isHide": 0,
+    "type": "command"
 }]
