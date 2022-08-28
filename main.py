@@ -1,4 +1,6 @@
 import requests, sys, time, random
+from urllib.request import urlopen, Request
+from io import BytesIO
 sys.path.append('../..')
 from imageutils.build_image import BuildImage, Text2Image
 from bot import bot
@@ -203,12 +205,17 @@ class chess(bot):
         pswd = time.time() if uid != 2417481092 else 123456
         zuobi = random.randint(100000, 999999)
         
+        # 生成图片
         bianchang = int(self.args[1])
-        frame = self.load_image('chess/0.png').resize((bianchang*100, bianchang*100))
+        frame = self.load_image('chess/0.png').resize((bianchang*100, bianchang*100+110))
         for i in range(bianchang+1):
             for l in range(bianchang+1):
-                frame = frame.paste(self.load_image('chess/0.png').resize((100, 100)), (i*100, l*100))
+                if l < bianchang:
+                    frame.paste(self.load_image('chess/0.png').resize((100, 100)), (i*100, l*100))
                 frame.draw_text((i*100-100, l*100-100, i*100, l*100), '({0},{1})'.format(i-1, l-1))
+        frame.paste(self.load_image('chess/0.png').resize((bianchang*100, 110)), (int(bianchang/2), bianchang*100))
+        frame.paste(self.GetImage(uid).resize((90, 90)).circle(), (10, bianchang*100+10))
+        frame.draw_text((115, bianchang*100+5, 300, bianchang*100+100), str(self.se.get('sender').get('nickname'))+'（绿方）')
         filename = frame.save_png()
         
         checkerboard.append({
@@ -244,8 +251,17 @@ class chess(bot):
                 checkerboard.remove(i)
             
         checkerboard[num]['player2'] = uid
+        
+        bianchang = ob.get('bianchang')
+        frame = BuildImage.open("./resources/createimg/" + ob.get('filename')).convert("RGBA")
+        frame.paste(self.GetImage(uid).resize((90, 90)).circle(), (bianchang*100-100, bianchang*100+10))
+        frame.draw_text((bianchang*100-300, bianchang*100+5, bianchang*100-110, bianchang*100+100), str(self.se.get('sender').get('nickname'))+'（红方）')
+        frame.draw_text((int(bianchang*100/2)-70, bianchang*100+5, int(bianchang*100/2)+70, bianchang*100+100), 'VS', max_fontsize=70)
+        checkerboard[num]['filename'] = frame.save_png()
+        
         self.send('匹配成功！\n开始对战')
-        return self.send('先手：[CQ:at,qq={0}]\n请发送“连子棋下 X坐标 Y坐标”来下棋'.format(ob.get('turn')))
+        self.send('[CQ:image,file=https://resourcesqqbot.xzy.center/createimg/{0}]'.format(checkerboard[num]['filename']))
+        self.send('先手：[CQ:at,qq={0}]\n请发送“连子棋下 X坐标 Y坐标”来下棋'.format(ob.get('turn')))
     
     def go(self):
         uid = self.se.get('user_id')
@@ -289,7 +305,7 @@ class chess(bot):
         checkerboard[l]['filename'] = filename
         self.send('[CQ:image,file=https://resourcesqqbot.xzy.center/createimg/{0}]'.format(filename))
         
-        state = self.check(ob, flag)
+        state = self.check(ob, flag, xx, yy)
         if state == 'ping':
             self.send('平局啦！')
         elif state == False:
@@ -300,85 +316,66 @@ class chess(bot):
             else:
                 self.send('[CQ:at,qq={0}]赢啦！'.format(oldturn))
     
-    def check(self, ob, flag):
+    def check(self, ob, flag, xx, yy):
         checkerboard = ob.get('map')
-        lianzi = ob.get('lianzi')+1 # 这里多加一因为后面循环判定问题会多循环一遍，导致cnt多加一
+        checkerboard[yy][xx] = flag
+        lianzi = ob.get('lianzi')
         bianchang = ob.get('bianchang')
-        for i in range(bianchang):
-            for j in range(bianchang):
-                if checkerboard[i][j] == flag:
-                    #检查 每行 是否有连续五个同一颜色的棋子 
-                    breakFlag = 0
-                    cnt = 1
-                    for l in range(lianzi-1):
-                        if i+l < bianchang:
-                            if checkerboard[i+l][j] != checkerboard[i][j]:
-                                breakFlag = 1
-                                break
-                            else:
-                                cnt += 1
-                            if cnt >= lianzi:
-                                break
-                        else:
-                            breakFlag = 1
-                            break
-                    if breakFlag == 0 and cnt >= lianzi:
-                        return True
-                        
-                    #检查 每列 是否有连续五个同一颜色的棋子
-                    breakFlag = 0
-                    cnt = 1
-                    for l in range(lianzi-1):
-                        if j+l < bianchang:
-                            if checkerboard[i][j+l] != checkerboard[i][j]:
-                                breakFlag = 1
-                                break
-                            else:
-                                cnt += 1
-                            if cnt >= lianzi:
-                                break
-                        else:
-                            breakFlag = 1
-                            break
-                    if breakFlag == 0 and cnt >= lianzi:
-                        return True
-                    
-                    #检查 斜线上 是否有连续五个同一颜色的棋子
-                    breakFlag = 0
-                    cnt = 1
-                    for l in range(lianzi-1):
-                        if j+l < bianchang and i+l < bianchang:
-                            if checkerboard[i+l][j+l] != checkerboard[i][j]:
-                                breakFlag = 1
-                                break
-                            else:
-                                cnt += 1
-                            if cnt >= lianzi:
-                                break
-                        else:
-                            breakFlag = 1
-                            break
-                    if breakFlag == 0 and cnt >= lianzi:
-                        return True
-                        
-                    #检查 斜线上 是否有连续五个同一颜色的棋子
-                    breakFlag = 0
-                    cnt = 1
-                    for l in range(lianzi-1):
-                        if j+l < bianchang and i+l < bianchang:
-                            if checkerboard[i+l][j-l] != checkerboard[i][j]:
-                                breakFlag = 1
-                                break
-                            else:
-                                cnt += 1
-                            if cnt >= lianzi:
-                                break
-                        else:
-                            breakFlag = 1
-                            break
-                    if breakFlag == 0 and cnt >= lianzi:
-                        return True
-    
+        
+        lFlag = rFlag = xcnt = tFlag = bFlag = ycnt = lrcnt = rlcnt = lrFlag = rlFlag = rlFlag1 = lrFlag1 = 1
+        for i in range(lianzi):
+            # 忽略0！！！！
+            if i == 0:
+                continue
+            
+            # 横向
+            if lFlag and xx-i >= 0:
+                if checkerboard[yy][xx-i] != checkerboard[yy][xx]:
+                    lFlag = 0
+                else:
+                    xcnt += 1
+            if rFlag and xx+i < bianchang:
+                if checkerboard[yy][xx+i] != checkerboard[yy][xx]:
+                    rFlag = 0
+                else:
+                    xcnt += 1
+            # 竖向
+            if tFlag and yy-i >= 0:
+                if checkerboard[yy-i][xx] != checkerboard[yy][xx]:
+                    tFlag = 0
+                else:
+                    ycnt += 1
+            if bFlag and yy+i < bianchang:
+                if checkerboard[yy+i][xx] != checkerboard[yy][xx]:
+                    bFlag = 0
+                else:
+                    ycnt += 1
+            # /向
+            if rlFlag and yy+i < bianchang and xx-i >= 0:
+                if checkerboard[yy+i][xx-i] != checkerboard[yy][xx]:
+                    rlFlag = 0
+                else:
+                    rlcnt += 1
+            if rlFlag1 and yy-i >= 0 and xx+i < bianchang:
+                if checkerboard[yy-i][xx+i] != checkerboard[yy][xx]:
+                    rlFlag1 = 0
+                else:
+                    rlcnt += 1
+            # \向
+            if lrFlag and yy+i < bianchang and xx+i < bianchang:
+                if checkerboard[yy+i][xx+i] != checkerboard[yy][xx]:
+                    lrFlag = 0
+                else:
+                    lrcnt += 1
+            if lrFlag1 and yy-i >= 0 and xx-i >= 0:
+                if checkerboard[yy-i][xx-i] != checkerboard[yy][xx]:
+                    lrFlag1 = 0
+                else:
+                    lrcnt += 1
+            
+            if lrcnt >= lianzi or rlcnt >= lianzi or xcnt >= lianzi or ycnt >= lianzi:
+                return True
+        
         # 平局情况（棋盘全部填满）
             fl = 0
             for i in checkerboard:
@@ -391,6 +388,18 @@ class chess(bot):
     
     def load_image(self, path):
         return BuildImage.open("./resources/images/" + path).convert("RGBA")
+        
+    def save_and_send(self, frame):
+        self.send('[CQ:image,file=https://resourcesqqbot.xzy.center/createimg/{0}]'.format(frame.save_jpg()))
+    
+    def GetImage(self, userid):
+        url = "http://q2.qlogo.cn/headimg_dl?dst_uin={0}&spec=100".format(userid)
+        image_bytes = urlopen(url).read()
+        # internal data file
+        data_stream = BytesIO(image_bytes)
+        # open as a PIL image object
+        #以一个PIL图像对象打开
+        return BuildImage.open(data_stream)
 
 jing = []
 checkerboard = []
