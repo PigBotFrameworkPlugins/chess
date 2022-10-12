@@ -10,7 +10,7 @@
 },
 {
     "content": "井字棋下 ",
-    "usage": "下 1~9",
+    "usage": "见提示",
     "promise": "anyone",
     "eval": "chess.jing_go()",
     "description": "在指定位置下棋",
