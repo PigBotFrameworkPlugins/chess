@@ -28,24 +28,3 @@
     "isHide": 0,
     "type": "command"
 }]
-
-// {
-//     "content": "井字棋组队",
-//     "usage": "井字棋组队[ <对方提供的组队密钥>]",
-//     "promise": "anyone",
-//     "eval": "chess.jing_pair()",
-//     "description": "与人组队井字棋，如果不输入密钥则自动生成一个，如果指定则加入挑战",
-//     "mode": "井字棋",
-//     "isHide": 0,
-//     "type": "command"
-// },
-// {
-//     "content": "井字棋下 ",
-//     "usage": "见提示",
-//     "promise": "anyone",
-//     "eval": "chess.jing_go()",
-//     "description": "在指定位置下棋",
-//     "mode": "井字棋",
-//     "isHide": 0,
-//     "type": "command"
-// },
