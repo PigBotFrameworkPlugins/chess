@@ -43,8 +43,8 @@ class chess(bot):
             'zuobi': zuobi,
             'map': [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         })
-        self.send('已创建对战，您的配对密钥为：{0}'.format(pswd))
-        self.SendOld(uid, '您的作弊密钥为：{0}'.format(zuobi))
+        self.send('已创建对战，您的配对密钥为：[|{0}|]'.format(pswd))
+        self.SendOld(uid, '您的作弊密钥为：[|{0}|]'.format(zuobi))
     
     def jing_go(self):
         uid = self.se.get('user_id')
@@ -186,7 +186,7 @@ class chess(bot):
     
     def make(self):
         if len(self.args) < 3:
-            return self.send('参数不全，用法：连子棋组队 棋盘边长 连子个数')
+            return self.send('参数不全，用法：[|连子棋组队 棋盘边长 连子个数|]')
         elif int(self.args[1]) < 3:
             return self.send('棋盘边长不得小于三！')
         elif int(self.args[2]) < 3:
@@ -230,8 +230,8 @@ class chess(bot):
             'map': [[0 for _ in range(int(self.args[1]))] for _ in range(int(self.args[1]))]
         })
         
-        self.send('已创建对战，您的配对密钥为：{0}'.format(pswd))
-        self.SendOld(uid, '您的作弊密钥为：{0}'.format(zuobi))
+        self.send('已创建对战，您的配对密钥为：[|{0}|]'.format(pswd))
+        self.SendOld(uid, '您的作弊密钥为：[|{0}|]'.format(zuobi))
     
     def join(self):
         # 有密钥
@@ -261,7 +261,7 @@ class chess(bot):
         
         self.send('匹配成功！\n开始对战')
         self.send('[CQ:image,file=https://resourcesqqbot.xzy.center/createimg/{0}]'.format(checkerboard[num]['filename']))
-        self.send('先手：[CQ:at,qq={0}]\n请发送“连子棋下 X坐标 Y坐标”来下棋'.format(ob.get('turn')))
+        self.send('先手：[CQ:at,qq={0}]\n请发送[|“连子棋下 X坐标 Y坐标”|]来下棋'.format(ob.get('turn')))
     
     def go(self):
         uid = self.se.get('user_id')
